@@ -1,10 +1,4 @@
-// ============================================================
-// firebase-config.js
-// Shared Firebase setup for the Alafi Art Work Website.
-// Every gallery page (paintings.html, sketches.html, etc.) and
-// admin.html import functions from this ONE file — so you only
-// ever need to edit your Firebase config in this one place.
-// ============================================================
+
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import {
@@ -19,11 +13,7 @@ import {
   getStorage, ref, uploadBytes, getDownloadURL, deleteObject
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
-// ============================================================
-// 1. PASTE YOUR FIREBASE PROJECT CONFIG HERE
-//    (Firebase Console -> Project Settings -> General ->
-//     "Your apps" -> Web app -> SDK setup and configuration)
-// ============================================================
+
 const firebaseConfig = {
   apiKey: "AIzaSyBeZ1kT5TClG9_lMr9bs-WuF3T-6XHaKts",
   authDomain: "alafi-art-website.firebaseapp.com",
@@ -33,28 +23,18 @@ const firebaseConfig = {
   appId: "1:526806992674:web:58f445a4352c02b9a3877b"D"
 };
 
-// ============================================================
-// 2. SET THE OWNER'S LOGIN EMAIL HERE
-//    Create this exact user under Firebase Console ->
-//    Authentication -> Users -> Add user (Email/Password).
-//    This is the ONLY account that will ever see the upload
-//    dashboard, the manage/delete grid, or download buttons.
-// ============================================================
+
 export const ADMIN_EMAILS = [
   "jonathanalafi@gmail.com",
   "muhwezipetros@gmail.com"
 ]; 
 
-// ------------------------------------------------------------
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// Storage requires the Blaze (pay-as-you-go) plan. If it isn't set up
-// yet, we don't want that to break Auth/Firestore (login, likes,
-// comments) for the rest of the site — so we set it up defensively and
-// only complain when someone actually tries to upload/delete a file.
+
 let storage = null;
 try {
   storage = getStorage(app);
@@ -63,10 +43,7 @@ try {
 }
 export { storage };
 
-/* =================== AUTH =================== */
 
-// Silently signs every visitor in anonymously (no form, no prompt)
-// so they can leave a comment without ever "registering."
 export function ensureGuestAuth() {
   return new Promise((resolve) => {
     const unsub = onAuthStateChanged(auth, (user) => {
@@ -91,12 +68,6 @@ export function ownerLogout() {
   return signOut(auth);
 }
 
-/* =================== STABLE ARTWORK IDS =================== */
-
-// Gives every artwork — whether it's one of the original hardcoded
-// demo images or something the owner uploads later — a stable,
-// predictable Firestore document id, so likes/comments work the
-// same way for both.
 export function slugId(category, filenameOrTitle) {
   const base = (filenameOrTitle || "artwork")
     .toLowerCase()
@@ -106,7 +77,6 @@ export function slugId(category, filenameOrTitle) {
   return `${category}-${base || "artwork"}`;
 }
 
-/* =================== LIKES =================== */
 
 const LIKED_KEY = "alafi_liked_ids";
 
@@ -130,8 +100,7 @@ export function watchLikeCount(artId, callback) {
   });
 }
 
-// Returns true if the like went through, false if this browser
-// already liked this artwork before.
+
 export async function likeArtwork(artId, category, imageUrl) {
   const liked = getLikedIds();
   if (liked.includes(artId)) return false;
@@ -150,7 +119,7 @@ export async function likeArtwork(artId, category, imageUrl) {
   return true;
 }
 
-/* =================== COMMENTS =================== */
+
 
 export function watchComments(artId, callback) {
   const q = query(collection(db, "artworks", artId, "comments"), orderBy("createdAt", "asc"));
@@ -172,11 +141,7 @@ export async function addComment(artId, name, text, uid) {
   });
 }
 
-/* =================== OWNER-ONLY: UPLOAD / MANAGE =================== */
-// Used only by admin.html. Firestore/Storage security rules (see
-// firestore.rules and storage.rules) independently enforce that only
-// the signed-in owner can actually write here — this file does not
-// do any of that enforcement itself.
+
 
 export async function uploadArtwork(category, file, title, description) {
   if (!storage) {
